@@ -14,30 +14,35 @@ def is_normal_window(wid):
 class WindowSelector(object):
     def __init__(self):
         keys = ['wid', 'desktop', 'app', 'win']
-        self.window_list = [
+        window_list = [
             dict(zip(keys, wl.split(maxsplit=3)))
             for wl in call_sh('wmctrl -lx').split('\n')[:-1]
         ]
 
         # extract normal windows
-        self.window_list = [
-            wl for wl in self.window_list
+        window_list = [
+            wl for wl in window_list
             if is_normal_window(wl['wid'])]
         # remove hostname from win
-        for wl in self.window_list:
+        for wl in window_list:
             wl.update(win=wl['win'].split(maxsplit=1)[1])
+
+        self.text_wid_pair = [
+            {'text': wl['win'], 'wid': wl['wid']} for wl in window_list
+        ] + [
+            {'text': wl['app'], 'wid': wl['wid']} for wl in window_list
+        ]
 
     def find_by_kv(self, key, val):
         return next(wl['wid'] for wl in self.window_list if wl[key] == val)
 
     def get_best_wid(self, user_input):
-        matching_win, _ = process.extractOne(
+        match, _ = process.extractOne(
             user_input,
-            [wl['win'] for wl in self.window_list])
-        return self.find_by_kv('win', matching_win)
-
-    def list_win(self):
-        return [wl['win'] for wl in self.window_list]
+            [wl['text'] for wl in self.text_wid_pair])
+        return next(
+            twp['wid'] for twp in self.text_wid_pair
+            if twp['text'] == match)
 
 
 if __name__ == '__main__':
