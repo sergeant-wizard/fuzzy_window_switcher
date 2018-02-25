@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import subprocess
 from fuzzywuzzy import process
 
@@ -28,9 +30,10 @@ class WindowSelector(object):
             wl.update(win=wl['win'].split(maxsplit=1)[1])
 
         self.text_wid_pair = [
-            {'text': wl['win'], 'wid': wl['wid']} for wl in window_list
-        ] + [
-            {'text': wl['app'], 'wid': wl['wid']} for wl in window_list
+            {
+                'text': wl['win'] + ' ' + wl['app'],
+                'wid': wl['wid']
+            } for wl in window_list
         ]
 
     def find_by_kv(self, key, val):
