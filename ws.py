@@ -36,9 +36,6 @@ class WindowSelector(object):
             } for wl in window_list
         ]
 
-    def find_by_kv(self, key, val):
-        return next(wl['wid'] for wl in self.window_list if wl[key] == val)
-
     def get_best_wid(self, user_input):
         match, _ = process.extractOne(
             user_input,
