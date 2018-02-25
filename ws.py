@@ -17,13 +17,14 @@ def str_to_hex(string):
     return int(string, 16)
 
 
-def is_active_window(wid):
-    active_id = call_sh("xprop -root _NET_ACTIVE_WINDOW").rsplit(maxsplit=1)[1]
-    return str_to_hex(wid) == str_to_hex(active_id)
+def get_active_wid():
+    wid = call_sh("xprop -root _NET_ACTIVE_WINDOW").rsplit(maxsplit=1)[1]
+    return str_to_hex(wid)
 
 
 class WindowSelector(object):
     def __init__(self):
+        active_wid = get_active_wid()
         keys = ['wid', 'desktop', 'app', 'win']
         window_list = [
             dict(zip(keys, wl.split(maxsplit=3)))
@@ -33,7 +34,9 @@ class WindowSelector(object):
         # filter out windows that are active or aren't normal
         window_list = [
             wl for wl in window_list
-            if is_normal_window(wl['wid']) and not is_active_window(wl['wid'])]
+            if is_normal_window(wl['wid']) and
+            str_to_hex(wl['wid']) != active_wid
+        ]
         # remove hostname from win
         for wl in window_list:
             wl.update(win=wl['win'].split(maxsplit=1)[1])
