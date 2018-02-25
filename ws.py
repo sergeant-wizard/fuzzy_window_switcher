@@ -13,6 +13,15 @@ def is_normal_window(wid):
     return " _NET_WM_WINDOW_TYPE_NORMAL" in w_type
 
 
+def str_to_hex(string):
+    return int(string, 16)
+
+
+def is_active_window(wid):
+    active_id = call_sh("xprop -root _NET_ACTIVE_WINDOW").rsplit(maxsplit=1)[1]
+    return str_to_hex(wid) == str_to_hex(active_id)
+
+
 class WindowSelector(object):
     def __init__(self):
         keys = ['wid', 'desktop', 'app', 'win']
@@ -21,10 +30,10 @@ class WindowSelector(object):
             for wl in call_sh('wmctrl -lx').split('\n')[:-1]
         ]
 
-        # extract normal windows
+        # filter out windows that are active or aren't normal
         window_list = [
             wl for wl in window_list
-            if is_normal_window(wl['wid'])]
+            if is_normal_window(wl['wid']) and not is_active_window(wl['wid'])]
         # remove hostname from win
         for wl in window_list:
             wl.update(win=wl['win'].split(maxsplit=1)[1])
