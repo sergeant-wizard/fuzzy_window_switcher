@@ -30,7 +30,7 @@ class WindowSelector(object):
         window_list = [
             wl for wl in window_list
             if is_normal_window(wl['wid']) and
-            str_to_hex(wl['wid']) != active_wid
+            str_to_hex(wl['wid']) != str_to_hex(active_wid)
         ]
         # remove hostname from win
         for wl in window_list:
