@@ -2,7 +2,6 @@
 
 import subprocess
 import sys
-from multiprocessing import Process, Queue
 from fuzzywuzzy import process
 
 
@@ -19,14 +18,8 @@ def str_to_hex(string):
     return int(string, 16)
 
 
-def get_active_wid():
-    wid = call_sh("xprop -root _NET_ACTIVE_WINDOW").rsplit(maxsplit=1)[1]
-    return str_to_hex(wid)
-
-
 class WindowSelector(object):
-    def __init__(self):
-        active_wid = get_active_wid()
+    def __init__(self, active_wid):
         keys = ['wid', 'desktop', 'app', 'win']
         window_list = [
             dict(zip(keys, wl.split(maxsplit=3)))
@@ -59,30 +52,11 @@ class WindowSelector(object):
             if twp['text'] == match)
 
 
-def user_input_function(user_input_queue):
-    zenity_cmd = "zenity --entry --title='window selector' --text=win"
-    try:
-        user_input = call_sh(zenity_cmd)
-    except subprocess.CalledProcessError:
-        user_input = None
-
-    user_input_queue.put(user_input)
-
 if __name__ == '__main__':
-    # enable user input as quickly as possible
-    user_input_queue = Queue()
-    user_input_process = Process(
-        target=user_input_function,
-        args=(user_input_queue,))
-    user_input_process.start()
+    active_wid, user_input = sys.stdin.read().split(maxsplit=1)
 
     # initialize window selector
-    ws = WindowSelector()
+    ws = WindowSelector(active_wid)
 
-    # Queue.get() blocks until the user has entered the text
-    user_input = user_input_queue.get()
-    if user_input is None:
-        sys.exit()
-    else:
-        wid = ws.get_best_wid(user_input)
-        call_sh('wmctrl -ia ' + wid)
+    wid = ws.get_best_wid(user_input)
+    call_sh('wmctrl -ia ' + wid)
